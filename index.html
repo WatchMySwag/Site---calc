@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Kalkulator Wyrażeń</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+
+    <style>
+        .hidden { display: none; }
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .scena { border: 1px solid #ccc; padding: 20px; margin-top: 10px; border-radius: 8px; }
+        input { width: 100%; padding: 10px; font-size: 18px; margin-bottom: 10px; }
+        button { padding: 10px 20px; cursor: pointer; background: #eee; border: 1px solid #999; }
+    </style>
+</head>
+<body>
+
+<div id="scena-menu">
+    <h1>System Obliczeniowy</h1>
+    <button onclick="zmienScene('scena-matma')">Otwórz Kalkulator Wyrażeń</button>
+    <button onclick="zmienScene('scena-elektro')">Otworz modul elektrotechniczny</button>
+</div>
+
+<div id="scena-matma" class="hidden scena">
+    <button onclick="zmienScene('scena-menu')">← Powrót</button>
+    <h2>Wpisz wyrażenie zespolone</h2>
+    <p>Przykład: <b> (12j + 1) * 4</b></p>
+
+    <input type="text" id="input-wyrazenie" placeholder="Np. 100 + 50i / 2">
+
+    <button onclick="obliczTo()">OBLICZ WYNIK</button>
+
+    <div style="margin-top: 20px; font-size: 24px;">
+        Wynik: <b id="wynik-tekst" style="color: blue;">--</b>
+    </div>
+    <hr>
+    <h3>Rozwiązywanie układów równań (A · X = B)</h3>
+
+    <div id="kontener-macierzy"></div>
+
+    <div id="wynik-macierz-tekst" style="margin-top: 15px; color: darkblue;"></div>
+    <div style="margin-top: 10px;">
+        <button onclick="przelaczRozmiar()" id="btn-rozmiar">Zmień na 3x3</button>
+        <button onclick="rozwiazUklad()">ROZWIĄŻ UKŁAD</button>
+    </div>
+</div>
+<div id="scena-elektro" class="scena">
+    <button onclick="zmienScene('scena-menu')">← Powrót </button>
+
+    <div class="kalkulator-box">
+        <h2>1. Rezystor (R)</h2>
+        <input type="text" id="nazwa-r" placeholder="Nazwa (np. R1)">
+        <input type="text" id="input-r" placeholder="Wartość R">
+        <select id="unit-r">
+            <option value="1000000">MΩ</option>
+            <option value="1000">kΩ</option>
+            <option value="1" selected>Ω</option>
+        </select>
+        <button onclick="obliczR()">Oblicz i Dodaj</button>
+        <div class="wynik">Wynik: <b id="wynik-r" style="color: green;">--</b></div>
+    </div>
+
+    <hr>
+
+    <div class="kalkulator-box">
+        <h2>2. Cewka (L)</h2>
+        <input type="text" id="nazwa-l" placeholder="Nazwa (np. L1)">
+        <input type="text" id="input-l" placeholder="Wartość L">
+        <select id="unit-l">
+            <option value="1">H</option>
+            <option value="0.001" selected>mH</option>
+            <option value="0.000001">µH</option>
+        </select>
+        <br><br>
+        <input type="text" id="input-f-l" placeholder="Częstotliwość f">
+        <select id="unit-f-l">
+            <option value="1000000">MHz</option>
+            <option value="1000">kHz</option>
+            <option value="1" selected>Hz</option>
+        </select>
+        <button onclick="obliczL()">Oblicz i Dodaj</button>
+        <div class="wynik">Wynik: <b id="wynik-l" style="color: blue;">--</b></div>
+    </div>
+
+    <hr>
+
+    <div class="kalkulator-box">
+        <h2>3. Kondensator (C)</h2>
+        <input type="text" id="nazwa-c" placeholder="Nazwa (np. C1)">
+        <input type="text" id="input-c" placeholder="Wartość C">
+        <select id="unit-c">
+            <option value="1">F</option>
+            <option value="0.001">mF</option>
+            <option value="0.000001" selected>µF</option>
+            <option value="0.000000001">nF</option>
+            <option value="0.000000000001">pF</option>
+        </select>
+        <br><br>
+        <input type="text" id="input-f-c" placeholder="Częstotliwość f">
+        <select id="unit-f-c">
+            <option value="1000000">MHz</option>
+            <option value="1000">kHz</option>
+            <option value="1" selected>Hz</option>
+        </select>
+        <button onclick="obliczC()">Oblicz i Dodaj</button>
+        <div class="wynik">Wynik: <b id="wynik-c" style="color: red;">--</b></div>
+    </div>
+
+    <hr style="border: 2px solid black;">
+
+    <div class="kalkulator-box" style="background-color: #f9f9f9; padding: 15px;">
+        <h2>Magazyn Elementów (Zwijanie Obwodu)</h2>
+        <table border="1" style="width: 100%; text-align: center; border-collapse: collapse;">
+            <thead>
+            <tr style="background-color: #ddd;">
+                <th>Wybierz</th>
+                <th>Nazwa</th>
+                <th>Impedancja Z [Ω]</th>
+                <th>Akcja</th>
+            </tr>
+            </thead>
+            <tbody id="magazyn-body"></tbody>
+        </table>
+
+        <div style="margin-top: 20px;">
+            <button onclick="polaczSzeregowo()" style="padding: 10px; background-color: #e1f5fe;">Połącz Szeregowo (+)</button>
+            <button onclick="polaczRownolegle()" style="padding: 10px; background-color: #fff9c4;">Połącz Równolegle (||)</button>
+            <button onclick="wyczyscMagazyn()" style="padding: 10px; background-color: #ffebee;">Wyczyść wszystko</button>
+        </div>
+    </div>
+
+    <div class="kalkulator-box">
+        <h3>Zasilanie i Moc</h3>
+        <p>Napięcie Urms [V]:</p>
+        <input type="text" id="input-u" value="230">
+        <button onclick="wyswietlRaportMocy()">Oblicz Moc</button>
+
+        <div id="info-moc"></div>
+
+        <pre id="raport-wynik"></pre>
+    </div>
+    <div class="kalkulator-box">
+        <h3>Częstotliwość Rezonansowa (Wpisz dane)</h3>
+
+        <label>Indukcyjność (L):</label><br>
+        <input type="text" id="res-l" placeholder="Wartość L">
+        <select id="res-unit-l">
+            <option value="1">H</option>
+            <option value="0.001" selected>mH</option>
+            <option value="0.000001">µH</option>
+        </select>
+
+        <br><br>
+
+        <label>Pojemność (C):</label><br>
+        <input type="text" id="res-c" placeholder="Wartość C">
+        <select id="res-unit-c">
+            <option value="1">F</option>
+            <option value="0.001">mF</option>
+            <option value="0.000001" selected>µF</option>
+            <option value="0.000000001">nF</option>
+        </select>
+
+        <br><br>
+
+        <button onclick="obliczRezonansManual()">Oblicz f0</button>
+        <div id="wynik-rezonans-manual" style="margin-top: 10px; font-weight: bold; color: #d32f2f;">
+            Wynik f0: --
+        </div>
+    </div>
+</div>
+
+<script>
+    // Mechanizm przełączania scen
+    function zmienScene(id) {
+        document.getElementById('scena-matma').classList.add('hidden');
+         document.getElementById('scena-elektro').classList.add('hidden');
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+function obliczTo() {
+    let wyrazenie = document.getElementById('input-wyrazenie').value;
+    let miejsceNaWynik = document.getElementById('wynik-tekst');
+
+    try {
+        let wyrazenieDlaJS = wyrazenie.replace(/j/g, 'i');
+        let wynik = math.evaluate(wyrazenieDlaJS);
+
+        // 1. Obliczenia podstawowe
+        let postacUlamkowa = math.format(wynik, { fraction: 'fraction' });
+        let modul = math.abs(wynik);
+        let katRad = math.arg(wynik);
+        let katDeg = katRad * (180 / Math.PI);
+
+        // 2. Sprzężenie zespolone (z*)
+        let sprzezenie = math.conj(wynik);
+        let sprzezenieUlamkowe = math.format(sprzezenie, { fraction: 'fraction' });
+
+        // 3. Wyświetlanie
+        miejsceNaWynik.innerHTML =
+            "<b>Postać prostokątna:</b> " + postacUlamkowa + "<br>" +
+            "<b>Postać polarna:</b> " + modul.toFixed(2) + " ∠ " + katDeg.toFixed(2) + "°<br>" +
+            "<b>Postać Eulera:</b> " + modul.toFixed(2) + " · e<sup>j(" + katRad.toFixed(2) + " rad)</sup><br>" +
+            "<b>Sprzężenie (z*):</b> " + sprzezenieUlamkowe + "<br>" +
+            "<hr style='margin: 10px 0; border-color: #444;'>" +
+            "<b>Moduł (|z|):</b> " + modul.toFixed(4) + "<br>" +
+            "<b>Faza (φ):</b> " + katDeg.toFixed(2) + "°";
+
+    } catch (error) {
+        miejsceNaWynik.innerText = "Błąd w zapisie!";
+    }
+}
+</script>
+<script>
+    let magazynElementow = [];
+    let licznikR = 1;
+    let licznikL = 1;
+    let licznikC = 1;
+    let licznikZ = 1;
+    // --- OBLICZENIA ELEMENTÓW ---
+
+   function obliczR() {
+    let val = document.getElementById('input-r').value.replace(',', '.');
+    let mult = parseFloat(document.getElementById('unit-r').value);
+    let R = parseFloat(val) * mult;
+
+    if (isNaN(R)) return alert("Wpisz poprawną wartość!");
+
+    // Logika nazwy: weź wpisaną lub nadaj domyślną "Rezystor X"
+    let wpisanaNazwa = document.getElementById('nazwa-r').value.trim();
+    let nazwaFinalna = wpisanaNazwa !== "" ? wpisanaNazwa : "Rezystor " + licznikR++;
+
+    document.getElementById('wynik-r').innerText = R.toFixed(2) + " Ω";
+    dodajDoMagazynu(nazwaFinalna, R, 0);
+}
+
+function obliczL() {
+    let val = document.getElementById('input-l').value.replace(',', '.');
+    let fVal = document.getElementById('input-f-l').value.replace(',', '.');
+    let multL = parseFloat(document.getElementById('unit-l').value);
+    let multF = parseFloat(document.getElementById('unit-f-l').value);
+
+    let L = parseFloat(val) * multL;
+    let f = parseFloat(fVal) * multF;
+
+    if (isNaN(L) || isNaN(f)) return alert("Błędne dane!");
+
+    let xl = 2 * Math.PI * f * L;
+
+    // Logika nazwy: weź wpisaną lub nadaj domyślną "Cewka X"
+    let wpisanaNazwa = document.getElementById('nazwa-l').value.trim();
+    let nazwaFinalna = wpisanaNazwa !== "" ? wpisanaNazwa : "Cewka " + licznikL++;
+
+    document.getElementById('wynik-l').innerText = "j" + xl.toFixed(2) + " Ω";
+    dodajDoMagazynu(nazwaFinalna, 0, xl);
+}
+
+function obliczC() {
+    let val = document.getElementById('input-c').value.replace(',', '.');
+    let fVal = document.getElementById('input-f-c').value.replace(',', '.');
+    let multC = parseFloat(document.getElementById('unit-c').value);
+    let multF = parseFloat(document.getElementById('unit-f-c').value);
+
+    let C = parseFloat(val) * multC;
+    let f = parseFloat(fVal) * multF;
+
+    if (isNaN(C) || isNaN(f)) return alert("Błędne dane!");
+    if (f === 0 || C === 0) return alert("Częstotliwość lub pojemność nie może być zerem!");
+
+    let xc = -1 / (2 * Math.PI * f * C);
+
+    // Logika nazwy: weź wpisaną lub nadaj domyślną "Kondensator X"
+    let wpisanaNazwa = document.getElementById('nazwa-c').value.trim();
+    let nazwaFinalna = wpisanaNazwa !== "" ? wpisanaNazwa : "Kondensator " + licznikC++;
+
+    document.getElementById('wynik-c').innerText = xc.toFixed(2) + "j Ω";
+    dodajDoMagazynu(nazwaFinalna, 0, xc);
+}
+
+    // --- ZARZĄDZANIE MAGAZYNEM ---
+
+    function dodajDoMagazynu(nazwa, re, im) {
+    magazynElementow.push({
+        nazwa: nazwa,
+        re: re,
+        im: im
+    });
+    renderujTabele();
+}
+
+    function renderujTabele() {
+    let tbody = document.getElementById('magazyn-body');
+    let infoMoc = document.getElementById('info-moc'); // Dodatkowy element tekstowy
+
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+
+    magazynElementow.forEach((el, index) => {
+        let czyOstatni = (index === magazynElementow.length - 1);
+
+        // Zielone tło i pogrubienie dla ostatniego elementu
+        let stylOstatni = czyOstatni ? 'style="background-color: #e8f5e9; font-weight: bold; color: #2e7d32;"' : '';
+
+        let row = `
+            <tr ${stylOstatni}>
+                <td><input type="checkbox" class="element-checkbox" data-index="${index}"></td>
+                <td>${el.nazwa} ${czyOstatni ? " ⚡" : ""}</td>
+                <td>${el.re.toFixed(2)} ${el.im >= 0 ? "+" : ""} ${el.im.toFixed(2)}j Ω</td>
+                <td><button onclick="usunElement(${index})">Usuń</button></td>
+            </tr>`;
+        tbody.innerHTML += row;
+    });
+
+    if (infoMoc) {
+        if (magazynElementow.length > 0) {
+            let ost = magazynElementow[magazynElementow.length - 1];
+            infoMoc.innerText = "Moc zostanie policzona dla: " + ost.nazwa;
+        } else {
+            infoMoc.innerText = "Dodaj elementy, aby liczyć moc";
+        }
+    }
+}
+
+    function usunElement(idx) {
+        magazynElementow.splice(idx, 1);
+        renderujTabele();
+    }
+
+    function wyczyscMagazyn() {
+        if (confirm("Wyczyścić całą listę?")) {
+            magazynElementow = [];
+            renderujTabele();
+            document.getElementById('raport-wynik').innerText = "";
+        }
+    }
+
+    // --- ŁĄCZENIE ELEMENTÓW ---
+
+    function pobierzWybrane() {
+        const wybrane = document.querySelectorAll('.element-checkbox:checked');
+        return Array.from(wybrane).map(cb => parseInt(cb.getAttribute('data-index')));
+    }
+
+function polaczSzeregowo() {
+    let idxs = pobierzWybrane();
+    if (idxs.length < 2) return alert("Zaznacz min. 2 elementy!");
+
+    let sRe = 0, sIm = 0;
+
+    // ZMIANA: Używamy licznika licznikZ i inkrementujemy go (++)
+    let nowaNazwa = "Z_sz_" + licznikZ++ + "(";
+
+    idxs.forEach(i => {
+        sRe += magazynElementow[i].re;
+        sIm += magazynElementow[i].im;
+        nowaNazwa += magazynElementow[i].nazwa + "+";
+    });
+
+    // Usuwamy ostatni "+" i zamykamy nawias
+    nowaNazwa = nowaNazwa.slice(0, -1) + ")";
+
+    // Usuwamy stare elementy (sortowanie od końca jest kluczowe!)
+    idxs.sort((a, b) => b - a).forEach(i => magazynElementow.splice(i, 1));
+
+    // Dodajemy nowy, połączony element
+    magazynElementow.push({
+        nazwa: nowaNazwa,
+        re: sRe,
+        im: sIm
+    });
+
+    renderujTabele();
+}
+
+ function polaczRownolegle() {
+    let idxs = pobierzWybrane();
+    if (idxs.length !== 2) return alert("Wybierz dokładnie 2 elementy!");
+
+    let z1 = magazynElementow[idxs[0]];
+    let z2 = magazynElementow[idxs[1]];
+
+    let lRe = (z1.re * z2.re) - (z1.im * z2.im);
+    let lIm = (z1.re * z2.im) + (z1.im * z2.re);
+
+    let mRe = z1.re + z2.re;
+    let mIm = z1.im + z2.im;
+
+    let mianownikMag = mRe * mRe + mIm * mIm;
+    if (mianownikMag === 0) return alert("Błąd: Impedancja zastępcza dąży do nieskończoności!");
+
+    let resRe = (lRe * mRe + lIm * mIm) / mianownikMag;
+    let resIm = (lIm * mRe - lRe * mIm) / mianownikMag;
+
+    let nowaNazwa = "Z_row_" + licznikZ++ + "(" + z1.nazwa + "||" + z2.nazwa + ")";
+
+    idxs.sort((a, b) => b - a).forEach(i => magazynElementow.splice(i, 1));
+    magazynElementow.push({
+        nazwa: nowaNazwa,
+        re: resRe,
+        im: resIm
+    });
+
+    renderujTabele();
+}
+
+    // --- MOC I RAPORTOWANIE ---
+
+    function wyswietlRaportMocy() {
+        let uRms = parseFloat(document.getElementById('input-u').value.replace(',', '.'));
+        if (magazynElementow.length === 0) return alert("Magazyn jest pusty!");
+
+
+        let z = magazynElementow[magazynElementow.length - 1];
+
+        // Obliczanie mocy S = U^2 / Z*
+        let mianownik = z.re * z.re + z.im * z.im;
+        if (mianownik === 0) return alert("Impedancja wynosi 0!");
+
+        let p = (uRms * uRms * z.re) / mianownik;
+        let q = (uRms * uRms * z.im) / mianownik;
+        let s_pozorna = Math.sqrt(p * p + q * q);
+        let cosPhi = s_pozorna === 0 ? 1 : p / s_pozorna;
+
+        document.getElementById('raport-wynik').innerText =
+            `P = ${p.toFixed(2)} W (Moc czynna)\n` +
+            `Q = ${q.toFixed(2)} var (Moc bierna)\n` +
+            `S = ${s_pozorna.toFixed(2)} VA (Moc pozorna)\n` +
+            `cosφ = ${cosPhi.toFixed(2)}`;
+    }
+   function obliczRezonansManual() {
+    // Pobieranie i czyszczenie danych (zamiana przecinka na kropkę)
+    let lVal = document.getElementById('res-l').value.replace(',', '.');
+    let cVal = document.getElementById('res-c').value.replace(',', '.');
+
+    // Pobieranie mnożników jednostek
+    let lMult = parseFloat(document.getElementById('res-unit-l').value);
+    let cMult = parseFloat(document.getElementById('res-unit-c').value);
+
+    // Obliczanie wartości w jednostkach podstawowych (H i F)
+    let L = parseFloat(lVal) * lMult;
+    let C = parseFloat(cVal) * cMult;
+
+    // Walidacja
+    if (isNaN(L) || isNaN(C) || L <= 0 || C <= 0) {
+        alert("Wpisz dodatnie wartości dla L i C!");
+        return;
+    }
+
+    // Wzór Thomsona
+    let f0 = 1 / (2 * Math.PI * Math.sqrt(L * C));
+
+    // Wyświetlanie wyniku
+    let wynikDiv = document.getElementById('wynik-rezonans-manual');
+    if (f0 > 1000000) {
+        wynikDiv.innerText = "Wynik f0: " + (f0 / 1000000).toFixed(3) + " MHz";
+    } else if (f0 > 1000) {
+        wynikDiv.innerText = "Wynik f0: " + (f0 / 1000).toFixed(3) + " kHz";
+    } else {
+        wynikDiv.innerText = "Wynik f0: " + f0.toFixed(2) + " Hz";
+    }
+}
+</script>
+<script>
+    let rozmiar = 2; // Zaczynamy od 2x2 zgodnie ze szkicem
+
+    // Funkcja, która rysuje okienka
+    function generujPola() {
+        let div = document.getElementById('kontener-macierzy');
+        let tabela = "<table border='0' cellpadding='5'>";
+
+        for (let i = 0; i < rozmiar; i++) {
+            tabela += "<tr>";
+            // Okienka dla macierzy A
+            for (let j = 0; j < rozmiar; j++) {
+                tabela += `<td><input type="text" id="a_${i}_${j}" placeholder="a${i+1}${j+1}" style="width: 50px;"></td>`;
+            }
+            // Znak równości
+            tabela += "<td> = </td>";
+            // Okienko dla wektora wyników B
+            tabela += `<td><input type="text" id="b_${i}" placeholder="b${i+1}" style="width: 50px;"></td>`;
+            tabela += "</tr>";
+        }
+        tabela += "</table>";
+        div.innerHTML = tabela;
+    }
+
+    // Funkcja rozwiązująca układ
+    function rozwiazUklad() {
+        try {
+            let A = [];
+            let B = [];
+
+            for (let i = 0; i < rozmiar; i++) {
+                let wiersz = [];
+                for (let j = 0; j < rozmiar; j++) {
+                    // Pobieramy wartość, zamieniamy j na i dla math.js
+                    let val = document.getElementById(`a_${i}_${j}`).value.replace(/j/g, 'i') || "0";
+                    wiersz.push(math.evaluate(val));
+                }
+                A.push(wiersz);
+                let valB = document.getElementById(`b_${i}`).value.replace(/j/g, 'i') || "0";
+                B.push([math.evaluate(valB)]);
+            }
+
+            // math.lusolve rozwiązuje układ równań liniowych Ax = B
+            let X = math.lusolve(A, B);
+
+            let tekstWyniku = "Wyniki:<br>";
+            X.forEach((x, i) => {
+                tekstWyniku += `x${i+1} = ${x[0].toString()}<br>`;
+            });
+            document.getElementById('wynik-macierz-tekst').innerHTML = tekstWyniku;
+
+        } catch (err) {
+            alert("Błąd! Upewnij się, że wpisałeś poprawne liczby (np. 2+3j).");
+        }
+    }
+
+    // Wywołujemy generowanie pól od razu po załadowaniu skryptu
+    generujPola();
+    function przelaczRozmiar() {
+    let btn = document.getElementById('btn-rozmiar');
+
+    if (rozmiar === 2) {
+        rozmiar = 3;
+        btn.innerText = "Wróć do 2x2"; // Zmieniamy napis na przycisku
+    } else {
+        rozmiar = 2;
+        btn.innerText = "Zmień na 3x3"; // Przywracamy napis
+    }
+
+    // Po każdej zmianie rozmiaru musimy przerysować okienka
+    generujPola();
+}
+</script>
+</body>
+</html>
