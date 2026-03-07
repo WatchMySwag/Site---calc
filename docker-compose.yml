@@ -1,0 +1,7 @@
+services:
+  kalkulator:          # Nazwa usługi (to Ty decydujesz)
+    build: .           # Szukaj Dockerfile w obecnym folderze i zbuduj obraz
+    ports:
+      - "8080:80"      # To samo co -p 8080:80
+    volumes:
+      - .:/usr/share/nginx/html # To samo co -v ${PWD}:/usr/share/nginx/html
