@@ -1,0 +1,18 @@
+services:
+  frontend:
+    build: ./frontend # Ścieżka do folderu z Dockerfile frontendu
+    ports:
+      - "8080:80" # Mapujemy port 80 z kontenera na 8080 na Twoim kompie
+    networks:
+      - app-network
+
+  backend:
+    build: ./backend
+    ports:
+      - "8081:8080"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

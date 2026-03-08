@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Kalkulator Wyrażeń i Elektrotechniki</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+
+    <style>
+        .hidden { display: none; }
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .scena { border: 1px solid #ccc; padding: 20px; margin-top: 10px; border-radius: 8px; }
+        input { width: 100%; padding: 10px; font-size: 18px; margin-bottom: 10px; box-sizing: border-box; }
+        button { padding: 10px 20px; cursor: pointer; background: #eee; border: 1px solid #999; margin: 5px 0; }
+        .kalkulator-box { border: 1px solid #eee; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .wynik { font-weight: bold; margin-top: 5px; }
+        table { width: 100%; text-align: center; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+
+<div id="scena-menu">
+    <h1>System Obliczania</h1>
+    <button onclick="zmienScene('scena-matma')">Otwórz Kalkulator Wyrażeń / Macierzy</button>
+    <button onclick="zmienScene('scena-elektro')">Otwórz moduł elektrotechniczny</button>
+</div>
+
+<div id="scena-matma" class="hidden scena">
+    <button onclick="zmienScene('scena-menu')">← Powrót</button>
+    <h2>Wpisz wyrażenie zespolone</h2>
+    <p>Przykład: <b> (12j + 1) * 4</b></p>
+    <input type="text" id="input-wyrazenie" placeholder="Np. 100 + 50i / 2">
+    <button onclick="obliczTo()">OBLICZ WYNIK</button>
+
+    <div style="margin-top: 20px; font-size: 24px;">
+        Wynik: <b id="wynik-tekst" style="color: blue;">--</b>
+    </div>
+    <hr>
+    <h3>Rozwiązywanie układów równań (A · X = B)</h3>
+    <div id="kontener-macierzy"></div>
+    <div id="wynik-macierz-tekst" style="margin-top: 15px; color: darkblue;"></div>
+    <div style="margin-top: 10px;">
+        <button onclick="przelaczRozmiar()" id="btn-rozmiar">Zmień na 3x3</button>
+        <button onclick="rozwiazUklad()">ROZWIĄŻ UKŁAD</button>
+    </div>
+</div>
+
+<div id="scena-elektro" class="hidden scena">
+    <button onclick="zmienScene('scena-menu')">← Powrót</button>
+
+    <div class="kalkulator-box">
+        <h2>1. Rezystor (R)</h2>
+        <input type="text" id="nazwa-r" placeholder="Nazwa (np. R1)">
+        <input type="text" id="input-r" placeholder="Wartość R">
+        <select id="unit-r">
+            <option value="1000000">MΩ</option>
+            <option value="1000">kΩ</option>
+            <option value="1" selected>Ω</option>
+        </select>
+        <button onclick="obliczR()">Oblicz i Dodaj</button>
+        <div class="wynik">Wynik: <b id="wynik-r" style="color: green;">--</b></div>
+    </div>
+
+    <div class="kalkulator-box">
+        <h2>2. Cewka (L)</h2>
+        <input type="text" id="nazwa-l" placeholder="Nazwa (np. L1)">
+        <input type="text" id="input-l" placeholder="Wartość L">
+        <select id="unit-l">
+            <option value="1">H</option>
+            <option value="0.001" selected>mH</option>
+            <option value="0.000001">µH</option>
+        </select>
+        <input type="text" id="input-f-l" placeholder="Częstotliwość f (Hz)" value="50">
+        <button onclick="obliczL()">Oblicz i Dodaj</button>
+        <div class="wynik">Wynik: <b id="wynik-l" style="color: blue;">--</b></div>
+    </div>
+
+    <div class="kalkulator-box">
+        <h2>3. Kondensator (C)</h2>
+        <input type="text" id="nazwa-c" placeholder="Nazwa (np. C1)">
+        <input type="text" id="input-c" placeholder="Wartość C">
+        <select id="unit-c">
+            <option value="1">F</option>
+            <option value="0.001">mF</option>
+            <option value="0.000001" selected>µF</option>
+        </select>
+        <input type="text" id="input-f-c" placeholder="Częstotliwość f (Hz)" value="50">
+        <button onclick="obliczC()">Oblicz i Dodaj</button>
+        <div class="wynik">Wynik: <b id="wynik-c" style="color: red;">--</b></div>
+    </div>
+
+    <div class="kalkulator-box" style="background-color: #f9f9f9;">
+        <h2>Magazyn Elementów (Zwijanie Obwodu)</h2>
+        <table>
+            <thead>
+                <tr style="background-color: #ddd;">
+                    <th>Wybierz</th>
+                    <th>Nazwa</th>
+                    <th>Impedancja Z [Ω]</th>
+                    <th>Akcja</th>
+                </tr>
+            </thead>
+            <tbody id="magazyn-body"></tbody>
+        </table>
+        <div style="margin-top: 20px;">
+            <button onclick="polaczSzeregowoAPI()" style="background-color: #e1f5fe;">Połącz Szeregowo (API +)</button>
+            <button onclick="polaczRownolegleMultiAPI()" style="background-color: #fff9c4;">Połącz Równolegle (API ||)</button>
+            <button onclick="wyczyscMagazyn()" style="background-color: #ffebee;">Wyczyść wszystko</button>
+        </div>
+    </div>
+
+    <div class="kalkulator-box">
+        <h3>Zasilanie i Moc (Java API)</h3>
+        <p>Napięcie Urms [V]: <input type="text" id="input-u" value="230"></p>
+        <p>Natężenie I [A]: <input type="text" id="input-i-api" value="10"></p>
+        <button onclick="obliczMocAPI()" style="background-color: #d1ecf1;">Oblicz Moc przez API</button>
+        <div id="wynik-api-box" style="margin-top: 10px;"></div>
+    </div>
+
+    <div class="kalkulator-box">
+        <h3>Częstotliwość Rezonansowa</h3>
+        <label>L:</label> <input type="text" id="res-l" style="width: 100px;"> 
+        <select id="res-unit-l"><option value="0.001">mH</option><option value="1">H</option></select>
+        <br>
+        <label>C:</label> <input type="text" id="res-c" style="width: 100px;"> 
+        <select id="res-unit-c"><option value="0.000001">µF</option><option value="1">F</option></select>
+        <br>
+        <button onclick="obliczRezonansManual()">Oblicz f0</button>
+        <div id="wynik-rezonans-manual" style="color: #d32f2f; font-weight: bold;"> Wynik f0: -- </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
