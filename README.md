@@ -34,4 +34,4 @@ Modułowość kodu: Rozdzielenie odpowiedzialności między pliki HTML, JS i kod
 
 Konteneryzacja: Zarządzanie obrazami, mapowanie portów oraz konfiguracja sieci wewnętrznej między kontenerami.
 
-
+Projekt traktowany trochę jako poligon do nauki
