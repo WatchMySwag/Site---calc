@@ -1,4 +1,3 @@
-Treść wiadomości Gemini
 AC Circuit App - Kalkulator Inżynierski
 O projekcie
 Projekt służy do obliczania parametrów obwodów prądu przemiennego. Został zbudowany w architekturze rozproszonej, aby oddzielić warstwę prezentacji od skomplikowanych obliczeń inżynierskich wykonywanych po stronie serwera.
@@ -34,4 +33,5 @@ Komunikacja API: Praktyczne wykorzystanie formatu JSON do przesyłania złożony
 Modułowość kodu: Rozdzielenie odpowiedzialności między pliki HTML, JS i kod backendowy, co ułatwia zarządzanie projektem powyżej 500 linii kodu.
 
 Konteneryzacja: Zarządzanie obrazami, mapowanie portów oraz konfiguracja sieci wewnętrznej między kontenerami.
+
 
