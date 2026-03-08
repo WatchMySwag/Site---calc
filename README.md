@@ -1,7 +1,7 @@
 # AC Circuit App - Kalkulator Inżynierski
 
 ## O projekcie
-Projekt służy do obliczania parametrów obwodów prądu przemiennego. Został zbudowany w architekturze rozproszonej, aby oddzielić warstwę prezentacji od skomplikowanych obliczeń inżynierskich wykonywanych po stronie serwera.
+Projekt służy do obliczania parametrów obwodów prądu przemiennego. Wykorzystywany do nauki dockera, java springboot oraz API
 
 ---
 
@@ -43,3 +43,4 @@ Aby uruchomić projekt w środowisku lokalnym, należy posiadać zainstalowane n
 2. Wykonaj polecenie:
 ```bash
 docker-compose up --build
+
